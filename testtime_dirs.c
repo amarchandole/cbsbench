@@ -1,7 +1,3 @@
-/*
- * Btrfs
- */
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -13,10 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-#define FILE_NO 1
-
-long long timer[FILE_NO];
 uint64_t cpu_hz = 0;
 uint64_t hrtime_t;
 /*
@@ -99,21 +96,28 @@ void clock_init(void)
 /*****************************************************************************************************/
 int main(int argc, char** argv)
 {
-	long long i=0;
+	long long i=0, o=99;
 	char fid[4]; 
 	long long in, N;
 	long long num=0;
 	char *path = (char *) malloc(20000);
+	char *name = (char *) malloc(20);
 	path = strcat(path, "/media/quad/mybtrfs/");
 
 	clock_init();
 	
+
+  	struct timeval start, end;
 	uint64_t fc = 0, fr = 0, tr = 0;
 	uint64_t lc = 0, lr = 0;
 
-	/*******************************************************************/			
+	/*******************************************************************/
+	system("/home/quad/CBShome/quad_scripts/becareful.sh");			
 	printf("How many recurisve directories should I make master?\n");
 	scanf("%lld", &N);
+	printf("And what should be the name of these directories?\n");
+	scanf("%s", name);
+	printf("Sure master. Here I go!\n");
 
 	char *touch = (char *) malloc(20000);
 	memset(touch, '\0', 20000);
@@ -122,8 +126,8 @@ int main(int argc, char** argv)
 
 	for(i=0; i<N; i++) // CREATE_FILES_LOOP
 	{
-		//sprintf(fid, "%lld", i);
-		path = strcat(path, "1");
+		//sprintf(fid, "%c", p);
+		path = strcat(path, name);
 		path = strcat(path, "/");
 	}
 	
@@ -146,25 +150,30 @@ int main(int argc, char** argv)
 	system(touch);
 
 	memset(touch, '\0', 20000);
-	touch = strcat(touch, "cat ");
+	//touch = strcat(touch, "open ");
 	touch = strcat(touch, path);
 	touch = strcat(touch, "quad");
-	puts(touch);
+
+	printf("_%s_\n", touch);
 	
 	system("/home/quad/CBShome/quad_scripts/remount.sh");
 	system("echo 3 > /proc/sys/vm/drop_caches");
+	system("sync");
 
 	fr = gethrtime(); // Start time
-	system(touch);
 	lr = gethrtime(); // End time
 	tr = (lr-fr);
 
+	gettimeofday(&start, NULL);
+	o = open(touch, O_RDWR);
+	gettimeofday(&end, NULL);
+
+	printf("\nOpen returns %lld.\n", o);
+	close(o);
 	printf("\n __________________________________");
 	printf("\n| File_IO | 	  Time (us)  	");
 	printf("\n|_________|________________________\n");
-	printf("| LR    |       %" PRIu64 "\n", lr);
-	printf("| FR    |       %" PRIu64 "\n", fr);
-	printf("| READ    |       %" PRIu64 "\n", tr);
+	printf("| TIME    |       %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 	printf("|_________|________________________\n");
 	
 	free(touch);

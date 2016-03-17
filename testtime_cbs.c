@@ -1,7 +1,3 @@
-/*
- * Btrfs
- */
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -13,6 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "sha256.c"
 
 #define SHA256_DIGEST_LENGTH 64
@@ -191,7 +191,7 @@ void fix_hash(int N)
 		pch2=strchr(hash_tab[i],'\'');
 	  	if(pch!=NULL || pch2!=NULL)
 	  	{
-	  		printf("Ghaan vala fix :D\n");
+	  		//printf("Ghaan vala fix :D\n");
 	    	memcpy(hash_tab[i],hash_tab[3],35);
 	  	}
     }
@@ -200,19 +200,21 @@ void fix_hash(int N)
 /*****************************************************************************************************/
 int main(int argc, char** argv)
 {
-	long long i=0;
+	long long i=0, o;
 	char fid[128]; 
 	long long in, N;
 	long long num=0;
 
 	clock_init();
 	
+	struct timeval start, end;
 	uint64_t fc = 0, fr = 0, tr = 0;
 	uint64_t lc = 0, lr = 0;
 
 	/*******************************************************************/				
-	N = 1000;
+	N = 100;
 	
+	system("/home/quad/CBShome/quad_scripts/formatwithcbs.sh");
 	for(i=0; i<N; i++) // CREATE_FILES_LOOP
 	{
 		char *touch = (char *) malloc(100);
@@ -241,11 +243,16 @@ int main(int argc, char** argv)
 	}
 
 	/*******************************************************************/
-	  init_hashtab();
-  	  calc_hash(N);
-  	  fix_hash(N);
-  	  system("/home/quad/CBShome/quad_scripts/remount.sh");
+	init_hashtab();
+	calc_hash(N);
+	fix_hash(N);
+	system("/home/quad/CBShome/quad_scripts/remount.sh");
 	/*******************************************************************/	
+
+	system("/home/quad/CBShome/quad_scripts/remount.sh");
+	//system("echo 3 > /proc/sys/vm/drop_caches");
+	system("sync");
+
 	for(i=0; i<N; i++) // READ_FILES_LOOP
 	{
 		char *temp = (char *) malloc(100);
@@ -254,24 +261,30 @@ int main(int argc, char** argv)
 		/*if(i % 1 == 0)
 			system("echo 3 > /proc/sys/vm/drop_caches");*/
 		
-		temp = strcat(temp, "open '");
 		temp = strcat(temp, path);
-		temp = strcat(temp, hash_tab[i]);
-		temp = strcat(temp, "'");
+		if(strlen(hash_tab[i]) == 32)
+			temp = strcat(temp, hash_tab[i]);
+		else
+			temp = strcat(temp, hash_tab[1]);
 
-		fr = gethrtime(); // Start
-		system(temp);
-		lr = gethrtime(); // End
+		//puts(temp);
+
+		gettimeofday(&start, NULL);
+		o = open(temp, O_RDWR);
+		gettimeofday(&end, NULL);
+		
+		printf("\nOpen returns %lld.\n", o);
+		close(o);
 
 		free(temp);
-		if(lr > fr) {
-			num = (lr-fr); // Add time
-			printf("%llu -> %llu\n", i, num);
+		if((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)) 
+		{
+			num = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); // Add time
+			//printf("%llu -> %llu\n", i, num);
 			tr += num; // Add time
 		}			
-				
 	}
-		
+
 	printf("\n _______________________________");
 	printf("\n| File_IO | 	  Time (us)  	|");
 	printf("\n|_________|_____________________|\n");
