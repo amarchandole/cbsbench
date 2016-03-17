@@ -112,12 +112,12 @@ int main(int argc, char** argv)
 	uint64_t lc = 0, lr = 0;
 
 	/*******************************************************************/
-	system("/home/quad/CBShome/quad_scripts/becareful.sh");			
-	printf("How many recurisve directories should I make master?\n");
+	system("/home/quad/becareful.sh");			
+	printf("How many recurisve directories should I make?\n");
 	scanf("%lld", &N);
-	printf("And what should be the name of these directories?\n");
+	printf("Name of these directories?\n");
 	scanf("%s", name);
-	printf("Sure master. Here I go!\n");
+	printf("Here I go!\n");
 
 	char *touch = (char *) malloc(20000);
 	memset(touch, '\0', 20000);
@@ -156,9 +156,12 @@ int main(int argc, char** argv)
 
 	printf("_%s_\n", touch);
 	
-	system("/home/quad/CBShome/quad_scripts/remount.sh");
+	system("umount -f /media/quad/mybtrfs/");
+	system("mount /dev/sda4 /media/quad/mybtrfs");
 	system("echo 3 > /proc/sys/vm/drop_caches");
+	system("sleep 1");
 	system("sync");
+	printf("REMOUNTED BTRFS TO DROP CACHES\n");
 
 	fr = gethrtime(); // Start time
 	lr = gethrtime(); // End time
@@ -168,7 +171,7 @@ int main(int argc, char** argv)
 	o = open(touch, O_RDWR);
 	gettimeofday(&end, NULL);
 
-	printf("\nOpen returns %lld.\n", o);
+	//printf("\nOpen returns %lld.\n", o);
 	close(o);
 	printf("\n __________________________________");
 	printf("\n| File_IO | 	  Time (us)  	");

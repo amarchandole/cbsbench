@@ -212,9 +212,12 @@ int main(int argc, char** argv)
 	uint64_t lc = 0, lr = 0;
 
 	/*******************************************************************/				
-	N = 100;
+	system("/home/quad/formatwithcbs.sh");
+	printf("\n\n=============================== Benchmarking for CONTENT BASED STORAGE =============================== \n\n");	
+	printf("Number of files to create \n");
+	scanf("%lld", &N);
+	printf("Here I go!\n");
 	
-	system("/home/quad/CBShome/quad_scripts/formatwithcbs.sh");
 	for(i=0; i<N; i++) // CREATE_FILES_LOOP
 	{
 		char *touch = (char *) malloc(100);
@@ -246,11 +249,13 @@ int main(int argc, char** argv)
 	init_hashtab();
 	calc_hash(N);
 	fix_hash(N);
-	system("/home/quad/CBShome/quad_scripts/remount.sh");
+
+	system("umount -f /media/quad/mybtrfs/");
+	system("mount /dev/sda4 /media/quad/mybtrfs");
+	system("sleep 1");
+	printf("REMOUNTED BTRFS TO DROP CACHES\n");
 	/*******************************************************************/	
 
-	system("/home/quad/CBShome/quad_scripts/remount.sh");
-	//system("echo 3 > /proc/sys/vm/drop_caches");
 	system("sync");
 
 	for(i=0; i<N; i++) // READ_FILES_LOOP
@@ -273,7 +278,7 @@ int main(int argc, char** argv)
 		o = open(temp, O_RDWR);
 		gettimeofday(&end, NULL);
 		
-		printf("\nOpen returns %lld.\n", o);
+		//printf("\nOpen returns %lld.\n", o);
 		close(o);
 
 		free(temp);
